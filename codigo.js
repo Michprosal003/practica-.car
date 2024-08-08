@@ -14,8 +14,8 @@ let p = {
 };
 
 let tiempo = 0;
-let valor = 0;
-let velocidad = 5;
+let velocidad = 0.4; // Velocidad de los autos oponentes
+let velocidadAutoJugador = 20; // Velocidad rápida para el auto del jugador
 let score = 0;
 let gameOver = false;
 
@@ -45,7 +45,6 @@ let animate = () => {
     tiempo++;
     if (tiempo % 80 === 0) {
         let x = Math.random() * (window.innerWidth - 50); // Ajustar posición en función del ancho de la ventana
-        valor = -Math.random() * 2 + Math.random() * 2;
         let n = document.createElement('div');
         pista.appendChild(n);
         n.classList.add('autos');
@@ -64,7 +63,7 @@ setInterval(() => {
     l.classList.add('lineas');
     setTimeout(() => {
         l.remove();
-    }, 700);
+    }, 1000);
 }, 150);
 
 document.addEventListener('keydown', (e) => {
@@ -72,16 +71,16 @@ document.addEventListener('keydown', (e) => {
 
     switch (e.code) {
         case 'ArrowLeft':
-            p.xv = -velocidad;
+            p.xv = -velocidadAutoJugador; // Usa la velocidad del jugador
             break;
         case 'ArrowRight':
-            p.xv = velocidad;
+            p.xv = velocidadAutoJugador; // Usa la velocidad del jugador
             break;
         case 'ArrowUp':
-            p.yv = -velocidad;
+            p.yv = -velocidadAutoJugador; // Usa la velocidad del jugador
             break;
         case 'ArrowDown':
-            p.yv = velocidad;
+            p.yv = velocidadAutoJugador; // Usa la velocidad del jugador
             break;
     }
 });
@@ -106,12 +105,9 @@ function mover() {
     let muchos = document.querySelectorAll('.autos');
     muchos.forEach((e) => {
         let currentTransform = e.style.transform || '';
-        e.style.transform = currentTransform + `translateY(${velocidad}px) translateX(${valor}px)`;
-        if (e.getBoundingClientRect().x < pista.getBoundingClientRect().x + 10) {
-            valor = 0;
-        }
-        if (e.getBoundingClientRect().y + 80 > pista.getBoundingClientRect().height + 100) {
-            e.remove();
+        e.style.transform = currentTransform + `translateY(${velocidad}px)`;
+        if (e.getBoundingClientRect().y > window.innerHeight) {
+            e.remove(); // Eliminar autos que han salido de la pantalla
         }
     });
 }
@@ -121,10 +117,11 @@ function choque() {
     muchos.forEach((e) => {
         let x = e.getBoundingClientRect().x;
         let y = e.getBoundingClientRect().y;
-        if (p.y < y + 80 && p.y + 80 > y && p.x + 50 > x && p.x < x + 50) {
+        
+        if (p.y < y + 45 && p.y + 45 > y && p.x + 45 > x && p.x < x + 50) {
             e.style.backgroundImage = 'url(explosion.png)';
-            e.style.width = '80px';
-            p.r = 360;
+            e.style.width = '100px';
+            p.r = 500;
             auto.style.transformOrigin = 'center';
             gameOver = true;
             statusElement.textContent = '¡Perdiste!';
@@ -152,14 +149,21 @@ document.getElementById('restart').addEventListener('click', () => {
     };
 
     tiempo = 0;
-    valor = 0;
-    velocidad = 5;
+    velocidad = 0.4; // Velocidad de los autos oponentes
+    velocidadAutoJugador = 20; // Asegúrate de reiniciar la velocidad del jugador
     score = 0;
     gameOver = false;
 
     // Limpiar la pista
     pista.innerHTML = '';
+
+    // Reiniciar el auto del jugador
     auto.style.transform = `translateX(${p.x}px) translateY(${p.y}px) rotate(${p.r}deg)`;
+
+    // Reiniciar los autos para que no impacten al auto del jugador
+    let muchos = document.querySelectorAll('.autos');
+    muchos.forEach((e) => e.remove());
+
     scoreElement.textContent = `Puntos: ${Math.floor(score)}`;
     statusElement.style.display = 'none';
     dialog.style.display = 'none';
@@ -174,10 +178,10 @@ document.getElementById('quit').addEventListener('click', () => {
 
 // Manejar los controles móviles
 document.getElementById('leftButton').addEventListener('touchstart', () => {
-    p.xv = -velocidad;
+    p.xv = -velocidadAutoJugador;
 });
 document.getElementById('rightButton').addEventListener('touchstart', () => {
-    p.xv = velocidad;
+    p.xv = velocidadAutoJugador;
 });
 document.addEventListener('touchend', (e) => {
     if (gameOver) return; // Ignorar las teclas si el juego ha terminado
